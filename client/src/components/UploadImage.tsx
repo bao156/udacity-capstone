@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { Form, Button } from 'semantic-ui-react'
 import Auth from '../auth/Auth'
-import { getUploadUrl, uploadFile } from '../api/todos-api'
+import { getUploadUrl, uploadFile } from '../api/blogs-api'
+import { History } from 'history'
 
 enum UploadState {
   NoUpload,
@@ -12,10 +13,11 @@ enum UploadState {
 interface EditTodoProps {
   match: {
     params: {
-      todoId: string
+      blogId: string
     }
   }
   auth: Auth
+  history: History
 }
 
 interface EditTodoState {
@@ -23,7 +25,7 @@ interface EditTodoState {
   uploadState: UploadState
 }
 
-export class EditTodo extends React.PureComponent<
+export class UploadImage extends React.PureComponent<
   EditTodoProps,
   EditTodoState
 > {
@@ -51,12 +53,12 @@ export class EditTodo extends React.PureComponent<
       }
 
       this.setUploadState(UploadState.FetchingPresignedUrl)
-      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), this.props.match.params.todoId)
+      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), this.props.match.params.blogId)
 
       this.setUploadState(UploadState.UploadingFile)
       await uploadFile(uploadUrl, this.state.file)
 
-      alert('File was uploaded!')
+      this.props.history.push("/")
     } catch (e) {
       alert('Could not upload a file: ' + (e as Error).message)
     } finally {

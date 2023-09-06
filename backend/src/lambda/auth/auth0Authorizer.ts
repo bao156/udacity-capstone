@@ -17,10 +17,10 @@ const jwksUrl = 'https://dev-bik573elk5m6pvs4.us.auth0.com/.well-known/jwks.json
 export const handler = async (
   event: CustomAuthorizerEvent
 ): Promise<CustomAuthorizerResult> => {
-  logger.info('Authorizing a user', event.authorizationToken);
+  logger.info('Authorizing a user', event.authorizationToken)
   try {
-    const jwtToken = await verifyToken(event.authorizationToken);
-    logger.info('User was authorized', jwtToken);
+    const jwtToken = await verifyToken(event.authorizationToken)
+    logger.info('User was authorized', jwtToken)
 
     return {
       principalId: jwtToken.sub,
@@ -34,9 +34,9 @@ export const handler = async (
           }
         ]
       }
-    };
+    }
   } catch (e) {
-    logger.error('User not authorized', { error: e.message });
+    logger.error('User not authorized', { error: e.message })
 
     return {
       principalId: 'user',
@@ -50,40 +50,40 @@ export const handler = async (
           }
         ]
       }
-    };
+    }
   }
 }
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
-  const token = getToken(authHeader);
-  const jwt: Jwt = decode(token, { complete: true }) as Jwt;
+  const token = getToken(authHeader)
+  const jwt: Jwt = decode(token, { complete: true }) as Jwt
 
   // TODO: Implement token verification
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  const kid: string = jwt.header.kid;
-  let res = await Axios.get(jwksUrl);
-  const publicKey: string = await getSigninKeys(res.data.keys,kid);
+  const kid: string = jwt.header.kid
+  let res = await Axios.get(jwksUrl)
+  const publicKey: string = await getSigninKeys(res.data.keys,kid)
 
-  return verify(token, publicKey, { algorithms: ['RS256'] }) as JwtPayload;
+  return verify(token, publicKey, { algorithms: ['RS256'] }) as JwtPayload
 }
 
 function getToken(authHeader: string): string {
-  if (!authHeader) throw new Error('No authentication header');
+  if (!authHeader) throw new Error('No authentication header')
 
   if (!authHeader.toLowerCase().startsWith('bearer '))
-    throw new Error('Invalid authentication header');
+    throw new Error('Invalid authentication header')
 
-  const split = authHeader.split(' ');
-  const token = split[1];
+  const split = authHeader.split(' ')
+  const token = split[1]
 
-  return token;
+  return token
 }
 
 function certToPEM(cert) {
-  cert = cert.match(/.{1,64}/g).join('\n');
-  cert = `-----BEGIN CERTIFICATE-----\n${cert}\n-----END CERTIFICATE-----\n`;
-  return cert;
+  cert = cert.match(/.{1,64}/g).join('\n')
+  cert = `-----BEGIN CERTIFICATE-----\n${cert}\n-----END CERTIFICATE-----\n`
+  return cert
 }
 
 async function getSigninKeys(keys, kid) {
@@ -94,20 +94,20 @@ async function getSigninKeys(keys, kid) {
           kid: key.kid,
           nbf: key.nbf,
           publicKey: certToPEM(key.x5c[0])
-        };
-      });
+        }
+      })
 
   if (!signinKeys) {
-    logger.error("The JWKS endpoint did not contain any signing keys");
-    throw new Error('The JWKS endpoint did not contain any signing keys');
+    logger.error("The JWKS endpoint did not contain any signing keys")
+    throw new Error('The JWKS endpoint did not contain any signing keys')
   }
 
-  const signingKey = signinKeys.find(key => key.kid === kid);
+  const signingKey = signinKeys.find(key => key.kid === kid)
 
   if (!signingKey) {
-    logger.error(`Unable to find a signing key that matches '${kid}'`);
-    throw new Error(`Unable to find a signing key that matches '${kid}'`);
+    logger.error(`Unable to find a signing key that matches '${kid}'`)
+    throw new Error(`Unable to find a signing key that matches '${kid}'`)
   }
 
-  return signingKey.publicKey;
+  return signingKey.publicKey
 }
